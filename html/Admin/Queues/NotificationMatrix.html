@@ -1,0 +1,64 @@
+<& /Admin/Elements/Header, Title => $title &>
+<& /Admin/Elements/QueueTabs, id => $QueueObj->id, 
+    QueueObj => $QueueObj,
+    current_tab => 'Admin/Queues/NotificationMatrix.html?id='.$id,
+    Title => $title &>
+<form>
+<input type="hidden" name="SetMatrix" value="1">
+<table class="notification-matrix">
+<tr>
+<th>\</th>
+% for my $Group (@groups) {
+  <th><% $Group->SelfDescription %></th>
+% }
+</tr>
+% for my $action (@actions) {
+<tr>
+<th><% $action %></th>
+%   for my $Group (@groups) {
+<td><input type="checkbox" name="NM-<% $action %>-<% $Group->Id %>" <% $matrix_hash->{$action}{$Group->Id} ? 'checked' : '' %> />
+</td>
+%   }
+</tr>
+% }
+
+</table>
+<& /Elements/Submit, Name => "Save", Label => loc('Save Changes') &>
+</form>
+<%init>
+
+my $QueueObj = RT::Queue->new($session{'CurrentUser'});
+$QueueObj->Load($id);
+
+my $title;
+
+if ($QueueObj->id) {
+    $title = loc("Modify notification matrix for queue [_1]", $QueueObj->Name);
+} else {
+    Abort(loc("Queue [_1] not found",$id));
+}
+
+my $Groups = RT::Groups->new($session{'CurrentUser'});
+$Groups->LimitToRolesForQueue($QueueObj->Id);
+
+my @groups = @{ $Groups->ItemsArrayRef };
+
+my @actions = qw(TicketCreated OnComment OnResolve);
+
+my $matrix;
+
+if ($ARGS{SetMatrix}) {
+    for my $action (@actions) {
+        $matrix->{$action} = [ map { s/NM-\Q$action\E-// ? $_ : () } keys %ARGS ];
+    }
+    $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);
+}
+else {
+    $matrix = $QueueObj->FirstAttribute('NotificationMatrix') || {};
+}
+
+my $matrix_hash = { map { $_ => { map { $_ => 1 } @{$matrix->{$_}} } } keys %$matrix };
+</%init>
+<%args>
+$id => 1         #some identifier that a Queue could 
+</%args>

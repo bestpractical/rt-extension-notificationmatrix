@@ -1,0 +1,15 @@
+META.yml
+Makefile
+Makefile.old
+MANIFEST
+MANIFEST.bak
+SIGNATURE
+blib/
+inc/
+mason*/
+pm_to_blib
+var/
+*.swp
+*.swo
+.prove
+*~
