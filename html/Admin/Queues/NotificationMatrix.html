@@ -54,7 +54,8 @@ if ($ARGS{SetMatrix}) {
     $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);
 }
 else {
-    $matrix = $QueueObj->FirstAttribute('NotificationMatrix') || {};
+    my $attr = $QueueObj->FirstAttribute('NotificationMatrix');
+    $matrix = $attr ? $attr->Content : {};
 }
 
 my $matrix_hash = { map { $_ => { map { $_ => 1 } @{$matrix->{$_}} } } keys %$matrix };
