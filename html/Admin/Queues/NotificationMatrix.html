@@ -3,7 +3,28 @@
     QueueObj => $QueueObj,
     current_tab => 'Admin/Queues/NotificationMatrix.html?id='.$id,
     Title => $title &>
-<form>
+
+<form method="post">
+Find User defined groups:
+<input name="GroupString" value="<% $GroupString %>">
+<& /Elements/Submit, Name => "Save", Label => loc('Search') &>
+
+</form>
+
+% if ($UserGroups) {
+<form method="post">
+<input type="hidden" name="SelectUserGroup" value="1">
+
+% while (my $Group = $UserGroups->Next()) {
+  <input type="checkbox" name="SelectUserGroup-<% $Group->Id %>"><% $Group->SelfDescription %><br>
+% }
+<& /Elements/Submit, Name => "Save", Label => loc('Subscribe to Queue notification') &>
+
+% }
+
+</form>
+
+<form method="post">
 <input type="hidden" name="SetMatrix" value="1">
 <table class="notification-matrix">
 <tr>
@@ -46,6 +67,22 @@ my @groups = @{ $Groups->ItemsArrayRef };
 my @actions = qw(TicketCreated OnComment OnResolve);
 
 my $matrix;
+my $UserGroups;
+if ($GroupString) {
+    $UserGroups = RT::Groups->new($session{'CurrentUser'});
+    $UserGroups->Limit(FIELD => 'Domain', OPERATOR => '=', VALUE => 'UserDefined');
+    $UserGroups->Limit(FIELD => 'Name',
+                       VALUE => $GroupString,
+                       OPERATOR => 'LIKE');
+}
+
+if ($ARGS{SelectUserGroup}) {
+    for (map { s/SelectUserGroup-// ? $_ : () } keys %ARGS) {
+        my $group = RT::Group->new($session{'CurrentUser'});
+        $group->LoadUserDefinedGroup($_);
+        push @groups, $group if $group->Id;
+    }
+}
 
 if ($ARGS{SetMatrix}) {
     for my $action (@actions) {
@@ -58,8 +95,22 @@ else {
     $matrix = $attr ? $attr->Content : {};
 }
 
+my $group_hash = { map { $_->Id => 1 } @groups };
 my $matrix_hash = { map { $_ => { map { $_ => 1 } @{$matrix->{$_}} } } keys %$matrix };
+
+use List::MoreUtils qw(uniq);
+
+
+for (uniq map { @{$matrix->{$_}} } keys %$matrix) {
+    unless ($group_hash->{$_}) {
+        my $group = RT::Group->new($session{'CurrentUser'});
+        $group->LoadUserDefinedGroup($_);
+        push @groups, $group if $group->Id;
+    }
+}
+
 </%init>
 <%args>
 $id => 1         #some identifier that a Queue could 
+$GroupString => ''
 </%args>
