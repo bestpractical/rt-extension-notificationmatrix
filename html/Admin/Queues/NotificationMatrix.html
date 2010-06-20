@@ -86,6 +86,7 @@ if ($ARGS{SelectUserGroup}) {
 
 if ($ARGS{SetMatrix}) {
     for my $action (@actions) {
+        # XXX: move this to some api and do permission check
         $matrix->{$action} = [ map { s/NM-\Q$action\E-// ? $_ : () } keys %ARGS ];
     }
     $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);

@@ -10,4 +10,12 @@ RT::Ruleset->Add(
         'RT::Extension::NotificationMatrix::Notify',
     ]);
 
+sub get_queue_matrix {
+    my ($self, $queue) = @_;
+
+    my $attr = $queue->FirstAttribute('NotificationMatrix');
+
+    $attr ? $attr->Content : {};
+}
+
 1;
