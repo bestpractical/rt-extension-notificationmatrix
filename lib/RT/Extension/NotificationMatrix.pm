@@ -8,6 +8,10 @@ RT::Ruleset->Add(
     Name => 'NotificationMatrix',
     Rules => [
         'RT::Extension::NotificationMatrix::Rule::TicketCreated',
+        'RT::Extension::NotificationMatrix::Rule::TicketCommented',
+        'RT::Extension::NotificationMatrix::Rule::TicketTaken',
+        'RT::Extension::NotificationMatrix::Rule::TicketResolved',
+        'RT::Extension::NotificationMatrix::Rule::QueueChanged',
     ]);
 
 sub get_queue_matrix {

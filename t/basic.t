@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 6;
+use RT::Test tests => 9;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
@@ -62,6 +62,7 @@ $group_obj = RT::Group->new($RT::SystemUser);
     for qw(user_b user_c);
 $groups{group_b} = $group_obj;
 
+$group_obj = RT::Group->new($RT::SystemUser);
 $group_obj->LoadSystemInternalGroup('Privileged');
 $group_obj->PrincipalObj->GrantRight(Object => $q, Right => $_)
     for (qw(OwnTicket ModifyTicket ShowTicket showticketcomments));
@@ -81,7 +82,7 @@ while (my $sc = $scrips->Next) {
 
 my ($tid, $ttrans, $tmsg);
 my $cu = RT::CurrentUser->new;
-$cu->Load( $users{user_a} );
+$cu->Load( $users{user_b} );
 
 my $t = RT::Ticket->new($cu);
 
@@ -103,7 +104,9 @@ my @groups = @{ $Groups->ItemsArrayRef };
 my $owners = RT::Group->new($RT::SystemUser);
 $owners->LoadQueueRoleGroup(Queue => $q->Id, Type => 'Owner');
 
-my $matrix = { TicketCreated => [ $owners->id, $groups{group_a}->id ] };
+my $matrix = { TicketCreated => [ $owners->id, $groups{group_a}->id ],
+               TicketTaken   => [ $groups{group_b}->id ],
+           };
 
 $q->SetAttribute(Name => 'NotificationMatrix',
                  Description => 'Notification Matrix Internal Data',
@@ -114,16 +117,27 @@ $q->SetAttribute(Name => 'NotificationMatrix',
 mail_ok {
     ($tid, $ttrans, $tmsg) =
         $t->Create(Subject => "a test",
-                   Owner => "user_a", Requestor => 'user_b',
+#                   Owner => "user_a", 
+                   Requestor => 'user_b',
                    Queue => $q->Id,
                    AdminCc => 'user_c',
                );
     ok($tid);
-} { from => qr'USER_A via RT',
+} { from => qr'USER_B via RT',
     to => 'user_a@company.com, user_b@company.com',
     subject => qr/a test/,
-    body => qr/Transaction: Ticket created by USER_A/,
+    body => qr/Transaction: Ticket created by USER_B/,
 };
+
+mail_ok {
+    my ($res, $msg) = $t->SetOwner($users{user_b});
+    ok($res, $msg);
+} { from => qr'USER_B via RT',
+    to => 'user_b@company.com, user_c@company.com',
+    subject => qr/a test/,
+    body => qr/Given to USER_B/,
+};
+
 
 #my ($baseurl, $m) = RT::Test->started_ok;
 
