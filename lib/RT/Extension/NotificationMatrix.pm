@@ -7,7 +7,7 @@ our $VERSION = '1.6';
 RT::Ruleset->Add(
     Name => 'NotificationMatrix',
     Rules => [
-        'RT::Extension::NotificationMatrix::Notify',
+        'RT::Extension::NotificationMatrix::Rule::TicketCreated',
     ]);
 
 sub get_queue_matrix {
