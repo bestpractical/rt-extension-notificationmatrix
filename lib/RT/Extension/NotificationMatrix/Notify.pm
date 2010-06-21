@@ -5,6 +5,25 @@ use List::MoreUtils qw(uniq);
 use RT::Action::SendEmail;
 use base 'RT::Rule';
 
+sub OnCreate {
+    my $self = shift;
+
+    my $ConditionObj = RT::ScripCondition->new( $self->CurrentUser );
+    $ConditionObj->Load( "On Create" );
+
+
+    my $txn_type = $self->TransactionObj->Type;
+    return unless( $ConditionObj->ApplicableTransTypes =~ /(?:^|,)(?:Any|\Q$txn_type\E)(?:,|$)/i );
+    # Load the scrip's Condition object
+    $ConditionObj->LoadCondition(
+        ScripObj       => $self,
+        TicketObj      => $self->TicketObj,
+        TransactionObj => $self->TransactionObj,
+    );
+
+    return $ConditionObj->IsApplicable();
+}
+
 sub Prepare {
     my $self = shift;
 
@@ -12,6 +31,7 @@ sub Prepare {
     my $matrix = RT::Extension::NotificationMatrix->get_queue_matrix($q);
 
     if (my $t = $matrix->{TicketCreated}) {
+        return unless $self->OnCreate;
         my @recipients = uniq map {
             my $g = RT::Group->new($self->CurrentUser);
             $g->Load($_);
