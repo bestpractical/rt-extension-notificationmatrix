@@ -4,6 +4,30 @@
     current_tab => 'Admin/Queues/NotificationMatrix.html?id='.$id,
     Title => $title &>
 
+<style type="text/css" media="screen">
+table.notification-matrix tr.sep {
+  border: 0 0 1 0 #000000 solid;
+}
+
+table.notification-matrix tr.group-type th {
+  width: 10em;
+}
+
+table.notification-matrix th.action {
+  text-align: left;
+}
+
+table.notification-matrix th.group-item {
+  text-align: center;
+  width: 5em;
+}
+
+table.notification-matrix td {
+  text-align: center;
+}
+
+</style>
+
 <form method="post">
 Find User defined groups:
 <input name="GroupString" value="<% $GroupString %>">
@@ -27,16 +51,23 @@ Find User defined groups:
 <form method="post">
 <input type="hidden" name="SetMatrix" value="1">
 <table class="notification-matrix">
-<tr>
-<th>\</th>
-% for my $Group (@groups) {
-  <th><% $Group->SelfDescription %></th>
+<tr class="group-type">
+<th></th>
+<th colspan="<% scalar @groups %>">Ticket Roles</th>
+% if (@user_groups) {
+<th colspan="<% scalar @user_groups %>">User Defined Groups</th>
+% }
+</tr>
+<tr class="sep">
+<th></th>
+% for my $Group (@groups, @user_groups) {
+  <th class="group-item"><% $Group->Domain eq 'UserDefined' ? $Group->Name : $Group->Type %></th>
 % }
 </tr>
 % for my $action (@actions) {
 <tr>
-<th><% $action %></th>
-%   for my $Group (@groups) {
+<th class="action"><% $action %></th>
+%   for my $Group (@groups, @user_groups) {
 <td><input type="checkbox" name="NM-<% $action %>-<% $Group->Id %>" <% $matrix_hash->{$action}{$Group->Id} ? 'checked' : '' %> />
 </td>
 %   }
@@ -63,7 +94,7 @@ my $Groups = RT::Groups->new($session{'CurrentUser'});
 $Groups->LimitToRolesForQueue($QueueObj->Id);
 
 my @groups = @{ $Groups->ItemsArrayRef };
-
+my @user_groups;
 my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved QueueChanged);
 
 my $matrix;
@@ -80,7 +111,7 @@ if ($ARGS{SelectUserGroup}) {
     for (map { s/SelectUserGroup-// ? $_ : () } keys %ARGS) {
         my $group = RT::Group->new($session{'CurrentUser'});
         $group->LoadUserDefinedGroup($_);
-        push @groups, $group if $group->Id;
+        push @user_groups, $group if $group->Id;
     }
 }
 
@@ -100,12 +131,11 @@ my $matrix_hash = { map { $_ => { map { $_ => 1 } @{$matrix->{$_}} } } keys %$ma
 
 use List::MoreUtils qw(uniq);
 
-
 for (uniq map { @{$matrix->{$_}} } keys %$matrix) {
     unless ($group_hash->{$_}) {
         my $group = RT::Group->new($session{'CurrentUser'});
         $group->LoadUserDefinedGroup($_);
-        push @groups, $group if $group->Id;
+        push @user_groups, $group if $group->Id;
     }
 }
 
