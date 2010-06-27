@@ -95,7 +95,7 @@ $Groups->LimitToRolesForQueue($QueueObj->Id);
 
 my @groups = @{ $Groups->ItemsArrayRef };
 my @user_groups;
-my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved QueueChanged);
+my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved TicketUpdatedExternally QueueChanged);
 
 my $matrix;
 my $UserGroups;

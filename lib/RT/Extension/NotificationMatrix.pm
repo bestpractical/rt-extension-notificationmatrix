@@ -11,6 +11,7 @@ RT::Ruleset->Add(
         'RT::Extension::NotificationMatrix::Rule::TicketCommented',
         'RT::Extension::NotificationMatrix::Rule::TicketTaken',
         'RT::Extension::NotificationMatrix::Rule::TicketResolved',
+        'RT::Extension::NotificationMatrix::Rule::TicketUpdatedExternally',
         'RT::Extension::NotificationMatrix::Rule::QueueChanged',
     ]);
 

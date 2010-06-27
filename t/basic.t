@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 9;
+use RT::Test tests => 14;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
@@ -86,6 +86,7 @@ $cu->Load( $users{user_b} );
 
 my $t = RT::Ticket->new($cu);
 
+# no rules defined, no mail
 mail_ok {
     ($tid, $ttrans, $tmsg) =
         $t->Create(Subject => "a test",
@@ -106,6 +107,7 @@ $owners->LoadQueueRoleGroup(Queue => $q->Id, Type => 'Owner');
 
 my $matrix = { TicketCreated => [ $owners->id, $groups{group_a}->id ],
                TicketTaken   => [ $groups{group_b}->id ],
+               TicketUpdatedExternally => [ $owners->id ],
            };
 
 $q->SetAttribute(Name => 'NotificationMatrix',
@@ -117,7 +119,6 @@ $q->SetAttribute(Name => 'NotificationMatrix',
 mail_ok {
     ($tid, $ttrans, $tmsg) =
         $t->Create(Subject => "a test",
-#                   Owner => "user_a", 
                    Requestor => 'user_b',
                    Queue => $q->Id,
                    AdminCc => 'user_c',
@@ -136,6 +137,31 @@ mail_ok {
     to => 'user_b@company.com, user_c@company.com',
     subject => qr/a test/,
     body => qr/Given to USER_B/,
+};
+
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_b} );
+    $t->SetCurrentUser($cu);
+    my $t2 = RT::Ticket->new($cu);
+    $t2->Load($t->id);
+    my ($res, $msg) = $t2->Correspond(Content => "foobar");
+    ok($res, $msg);
+};
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_a} );
+    $t->SetCurrentUser($cu);
+    my $t2 = RT::Ticket->new($cu);
+    $t2->Load($t->id);
+    my ($res, $msg) = $t2->Correspond(Content => "foobar");
+    ok($res, $msg);
+} { from => qr'USER_A via RT',
+    to => 'user_b@company.com',
+    subject => qr/a test/,
+    body => qr/foobar/,
 };
 
 
