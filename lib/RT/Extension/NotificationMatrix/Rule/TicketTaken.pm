@@ -9,7 +9,7 @@ sub ConditionMatched {
     my $self = shift;
     my $txn = $self->TransactionObj;
 
-    return ($txn->Field eq 'Owner' && $txn->OldValue == $RT::Nobody->Id)
+    return ($txn->Field && $txn->Field eq 'Owner' && $txn->OldValue == $RT::Nobody->Id)
 }
 
 1;
