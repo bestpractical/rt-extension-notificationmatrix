@@ -92,8 +92,7 @@ if ($ARGS{SetMatrix}) {
     $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);
 }
 else {
-    my $attr = $QueueObj->FirstAttribute('NotificationMatrix');
-    $matrix = $attr ? $attr->Content : {};
+    $matrix = RT::Extension::NotificationMatrix->get_queue_matrix($QueueObj);
 }
 
 my $group_hash = { map { $_->Id => 1 } @groups };
