@@ -42,6 +42,8 @@ sub ScripConditionMatched {
     return $ConditionObj->IsApplicable();
 }
 
+sub DefaultTemplate {}
+
 sub LoadTemplate {
     my $self = shift;
     my $template = RT::Template->new($self->CurrentUser);
@@ -49,7 +51,7 @@ sub LoadTemplate {
     my $name = ref($self);
     $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
 
-    for my $tname ($self->TicketObj->QueueObj->Name.'-'.$name, $name, 'Transaction') {
+    for my $tname ($self->TicketObj->QueueObj->Name.'-'.$name, $name, $self->DefaultTemplate, 'Transaction') {
         $template->Load($tname);
         last if $template->Id;
     }
