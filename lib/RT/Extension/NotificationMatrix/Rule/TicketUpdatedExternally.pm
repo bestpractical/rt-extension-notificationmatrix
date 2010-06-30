@@ -4,6 +4,7 @@ use warnings;
 use base 'RT::Extension::NotificationMatrix::Rule';
 
 use constant NM_Entry => 'TicketUpdatedExternally';
+use constant DefaultTemplate => 'Admin Correspondence';
 
 sub ConditionMatched {
     my $self = shift;

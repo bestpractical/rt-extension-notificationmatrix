@@ -4,6 +4,7 @@ use warnings;
 use base 'RT::Extension::NotificationMatrix::Rule';
 
 use constant NM_Entry => 'TicketResolved';
+use constant DefaultTemplate => 'Resolved';
 
 sub ConditionMatched {
     my $self = shift;
