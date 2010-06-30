@@ -42,13 +42,31 @@ sub ScripConditionMatched {
     return $ConditionObj->IsApplicable();
 }
 
+sub LoadTemplate {
+    my $self = shift;
+    my $template = RT::Template->new($self->CurrentUser);
+
+    my $name = ref($self);
+    $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
+
+    for my $tname ($self->TicketObj->QueueObj->Name.'-'.$name, $name, 'Transaction') {
+        $template->Load($tname);
+        last if $template->Id;
+    }
+
+    unless ($template->Id) {
+        die 'Failed to load template for notification rule: '.$name;
+    }
+
+    return $template;
+}
+
 sub Prepare {
     my $self = shift;
 
     my @recipients = $self->GetRecipients or return 0;
 
-    my $template = RT::Template->new($self->CurrentUser);
-    $template->Load('Transaction') or die;
+    my $template = $self->LoadTemplate;
     # RT::Action weakens the following, so we need to keep additional references
     my $ref = [RT::Scrip->new($self->CurrentUser),
                { _Message_ID => 0},
