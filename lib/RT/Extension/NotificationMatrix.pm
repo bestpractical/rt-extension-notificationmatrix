@@ -24,3 +24,54 @@ sub get_queue_matrix {
 }
 
 1;
+
+=head1 NAME
+
+RT::Extension::NotificationMatrix - RT Extension for custom ticket notification
+
+=head1 SYNOPSIS
+
+  # In your RT site config:
+  Set(@Plugins,(qw(RT::Extension::NotificationMatrix));
+
+=head1 DESCRIPTION
+
+This plugin provides per-queue configuration for notification
+triggering based on ticket actions, and notification delivery for
+selected ticket roles and/or user-defined groups.
+
+Note that this plugin can co-exist with the L<RT::Scrip>-based
+notification, which you probably want to disable to avoid duplicated
+messages.
+
+When the plugin is enabled, you will have an additional
+C<Notification> tab in the queue admin page.  When a notification rule
+is triggered, the designated ticket roles or user defined groups get a
+message with the first found template of:
+
+=over
+
+=item $QueueName-$RuleName
+
+For example: General-TicketResolved
+
+=item $RuleName
+
+For example: TicketResolved
+
+=item The default tempalte defined by the rule
+
+=item The C<Transaction> template
+
+=back
+
+=head1 CAVEATS
+
+Internally, the matrix is stored on the queue object as attributes,
+with mappings to the subscribe L<RT::Group> object ids.  The role
+groups are stored as queue-role groups, as at the time of
+configuration we do not have ticket instances to create ticket-role
+groups.  The queue-role gorups are then instantiated as ticket-role
+when the notification rules are triggered.
+
+=cut
