@@ -63,6 +63,13 @@ sub LoadTemplate {
     return $template;
 }
 
+sub Description {
+    my $self = shift;
+    my $name = ref($self);
+    $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
+    return "Notification for $name";
+}
+
 sub Prepare {
     my $self = shift;
 
@@ -85,6 +92,8 @@ sub Prepare {
     $email->Prepare;
     $self->{__ref} = $ref;
     $self->{__email} = $email;
+    $self->{hints} = { class => 'SendEmail',
+                       recipients => { To => \@recipients } };
     return 1;
 }
 
