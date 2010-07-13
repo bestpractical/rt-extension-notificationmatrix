@@ -30,8 +30,9 @@ table.notification-matrix td {
 
 <form method="post">
 Find User defined groups:
-<input name="GroupString" value="<% $GroupString %>">
-<& /Elements/Submit, Name => "Save", Label => loc('Search') &>
+<input name="GroupString" value="<% $ARGS{GroupString} %>">
+<& /Elements/Submit, Name => "Search", Label => loc('Search') &>
+<& /Elements/Submit, Name => "ListAll", Label => loc('List All') &>
 
 </form>
 
@@ -42,8 +43,12 @@ Find User defined groups:
 % while (my $Group = $UserGroups->Next()) {
   <input type="checkbox" name="SelectUserGroup-<% $Group->Id %>"><% $Group->SelfDescription %><br>
 % }
-<& /Elements/Submit, Name => "Save", Label => loc('Subscribe to Queue notification') &>
-
+% if ($UserGroups->Count) {
+<& /Elements/Submit, Name => "Save", Label => loc('Subscribe selected queue for notification') &>
+% }
+% else {
+<h2>No groups matching '<% $ARGS{'GroupString'} %>' found</h2>
+% }
 </form>
 % }
 
@@ -53,9 +58,9 @@ Find User defined groups:
 <table class="notification-matrix">
 <tr class="group-type">
 <th></th>
-<th colspan="<% scalar @groups %>">Ticket Roles</th>
+<th colspan="<% scalar @groups %>"><&|/l&>Ticket Roles</&></th>
 % if (@user_groups) {
-<th colspan="<% scalar @user_groups %>">User Defined Groups</th>
+<th colspan="<% scalar @user_groups %>"><&|/l&>User Defined Groups</&></th>
 % }
 </tr>
 <tr class="sep">
@@ -98,12 +103,15 @@ my @user_groups;
 my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved TicketUpdatedExternally QueueChanged);
 my $matrix;
 my $UserGroups;
-if ($GroupString) {
+if (exists $ARGS{'GroupString'}) {
     $UserGroups = RT::Groups->new($session{'CurrentUser'});
     $UserGroups->Limit(FIELD => 'Domain', OPERATOR => '=', VALUE => 'UserDefined');
-    $UserGroups->Limit(FIELD => 'Name',
-                       VALUE => $GroupString,
-                       OPERATOR => 'LIKE');
+    if (!$ARGS{'ListAll'}) {
+        $UserGroups->Limit(FIELD => 'Domain', OPERATOR => '=', VALUE => 'UserDefined');
+        $UserGroups->Limit(FIELD => 'Name',
+                           VALUE => $ARGS{'GroupString'},
+                           OPERATOR => 'LIKE');
+    }
 }
 
 if ($ARGS{SelectUserGroup}) {
@@ -141,5 +149,4 @@ for (uniq map { @{$matrix->{$_}} } keys %$matrix) {
 </%init>
 <%args>
 $id => 1         #some identifier that a Queue could 
-$GroupString => ''
 </%args>
