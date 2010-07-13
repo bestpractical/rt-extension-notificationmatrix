@@ -65,7 +65,7 @@ sub LoadTemplate {
 
 sub Description {
     my $self = shift;
-    my $name = ref($self);
+    my $name = ref($self) || $self;
     $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
     return "Notification for $name";
 }

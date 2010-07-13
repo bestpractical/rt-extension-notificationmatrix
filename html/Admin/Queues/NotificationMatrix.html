@@ -66,7 +66,7 @@ Find User defined groups:
 </tr>
 % for my $action (@actions) {
 <tr>
-<th class="action"><% $action %></th>
+<th class="action"><% ("RT::Extension::NotificationMatrix::Rule::".$action)->Description %></th>
 %   for my $Group (@groups, @user_groups) {
 <td><input type="checkbox" name="NM-<% $action %>-<% $Group->Id %>" <% $matrix_hash->{$action}{$Group->Id} ? 'checked' : '' %> />
 </td>
@@ -96,7 +96,6 @@ $Groups->LimitToRolesForQueue($QueueObj->Id);
 my @groups = @{ $Groups->ItemsArrayRef };
 my @user_groups;
 my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved TicketUpdatedExternally QueueChanged);
-
 my $matrix;
 my $UserGroups;
 if ($GroupString) {

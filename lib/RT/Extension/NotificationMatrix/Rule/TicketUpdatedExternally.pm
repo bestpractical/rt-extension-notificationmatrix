@@ -5,6 +5,7 @@ use base 'RT::Extension::NotificationMatrix::Rule';
 
 use constant NM_Entry => 'TicketUpdatedExternally';
 use constant DefaultTemplate => 'Admin Correspondence';
+use constant Description => 'When ticket is updated externally';
 
 sub ConditionMatched {
     my $self = shift;
