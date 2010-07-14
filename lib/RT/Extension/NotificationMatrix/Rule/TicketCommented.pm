@@ -9,7 +9,7 @@ use constant Description => 'When ticket is commented';
 
 sub ConditionMatched {
     my $self = shift;
-    $self->ScripConditionMatched("On Commit");
+    $self->ScripConditionMatched("On Comment");
 }
 
 1;
