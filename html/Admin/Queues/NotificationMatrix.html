@@ -30,7 +30,7 @@ table.notification-matrix td {
 
 <form method="post">
 Find User defined groups:
-<input name="GroupString" value="<% $ARGS{GroupString} %>">
+<input name="GroupString" value="<% $ARGS{GroupString} || '' %>">
 <& /Elements/Submit, Name => "Search", Label => loc('Search') &>
 <& /Elements/Submit, Name => "ListAll", Label => loc('List All') &>
 
