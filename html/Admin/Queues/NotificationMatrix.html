@@ -52,28 +52,43 @@ Find User defined groups:
 </form>
 % }
 
+<p>
+Notifications for this queue will be sent to people in the groups or roles checked with the "inclusion" button, minus those found in the groups or roles checked with the "exclusion" button.
+</p>
+
 
 <form method="post">
 <input type="hidden" name="SetMatrix" value="1">
 <table class="notification-matrix">
 <tr class="group-type">
 <th></th>
-<th colspan="<% scalar @groups %>"><&|/l&>Ticket Roles</&></th>
+<th colspan="<% 2 *scalar @groups %>"><&|/l&>Ticket Roles</&></th>
 % if (@user_groups) {
-<th colspan="<% scalar @user_groups %>"><&|/l&>User Defined Groups</&></th>
+<th colspan="<% 2 * scalar @user_groups %>"><&|/l&>User Defined Groups</&></th>
 % }
 </tr>
 <tr class="sep">
 <th></th>
 % for my $Group (@groups, @user_groups) {
-  <th class="group-item"><% $Group->Domain eq 'UserDefined' ? $Group->Name : $Group->Type %></th>
+  <th class="group-item" colspan="2"><% $Group->Domain eq 'UserDefined' ? $Group->Name : $Group->Type %></th>
+% }
+</tr>
+<tr class="sep">
+<th></th>
+% for my $Group (@groups, @user_groups) {
+  <th class="group-item">Inc</th>
+  <th class="group-item">Exc</th>
 % }
 </tr>
 % for my $action (@actions) {
 <tr>
 <th class="action"><% ("RT::Extension::NotificationMatrix::Rule::".$action)->Description %></th>
 %   for my $Group (@groups, @user_groups) {
-<td><input type="checkbox" name="NM-<% $action %>-<% $Group->Id %>" <% $matrix_hash->{$action}{$Group->Id} ? 'checked' : '' %> />
+<td>
+<input type="radio" name="NM-<% $action %>-<% $Group->Id %>" ondblclick="if(this.checked) this.checked=false" value="include" <% $matrix_hash->{$action}{$Group->Id} ? 'checked' : '' %> />
+</td>
+<td>
+<input type="radio" name="NM-<% $action %>-<% $Group->Id %>" ondblclick="if(this.checked) this.checked=false" value="exclude" <% $matrix_hash->{$action}{-$Group->Id} ? 'checked' : '' %> />
 </td>
 %   }
 </tr>
@@ -125,7 +140,8 @@ if ($ARGS{SelectUserGroup}) {
 if ($ARGS{SetMatrix}) {
     for my $action (@actions) {
         # XXX: move this to some api and do permission check
-        $matrix->{$action} = [ map { s/NM-\Q$action\E-// ? $_ : () } keys %ARGS ];
+        $matrix->{$action} = [ map { $ARGS{"NM-$action-$_"} eq 'include' ? $_ : -$_ }
+                               map { s/NM-\Q$action\E-// ? $_ : () } keys %ARGS ]
     }
     $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);
 }
@@ -138,7 +154,7 @@ my $matrix_hash = { map { $_ => { map { $_ => 1 } @{$matrix->{$_}} } } keys %$ma
 
 use List::MoreUtils qw(uniq);
 
-for (uniq map { @{$matrix->{$_}} } keys %$matrix) {
+for (uniq map { abs($_) } map { @{$matrix->{$_}} } keys %$matrix) {
     unless ($group_hash->{$_}) {
         my $group = RT::Group->new($session{'CurrentUser'});
         $group->LoadUserDefinedGroup($_);

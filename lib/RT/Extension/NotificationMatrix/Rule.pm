@@ -1,7 +1,7 @@
 package  RT::Extension::NotificationMatrix::Rule;
 use strict;
 use warnings;
-use List::MoreUtils qw(uniq);
+use List::MoreUtils qw(part);
 use RT::Action::SendEmail;
 use base 'RT::Rule';
 
@@ -12,15 +12,27 @@ sub GetRecipients {
     my $t = $matrix->{$self->NM_Entry} or return;
 
     $self->ConditionMatched or return;
+    my ($include, $exclude) = part { $_ > 0 ? 0 : 1 } @$t;
 
-    return uniq map {
-        my $g = RT::Group->new($self->CurrentUser);
-        $g->Load($_);
-        if ($g->Domain eq 'RT::Queue-Role') {
-            $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type);
-        }
-        $g->MemberEmailAddresses
-    } @$t;
+    my %address = map { $_ => 1 }
+        map { $self->_AddressesFromGroup($_) } @$include;
+
+    for (map { $self->_AddressesFromGroup(-$_) } @$exclude ) {
+        delete $address{$_};
+    }
+
+    return sort keys %address;
+
+}
+
+sub _AddressesFromGroup {
+    my ($self, $id) = @_;
+    my $g = RT::Group->new($self->CurrentUser);
+    $g->Load($id);
+    if ($g->Domain eq 'RT::Queue-Role') {
+        $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type);
+    }
+    $g->MemberEmailAddresses
 }
 
 sub ScripConditionMatched {
