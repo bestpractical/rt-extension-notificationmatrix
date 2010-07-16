@@ -4,6 +4,8 @@
     current_tab => 'Admin/Queues/NotificationMatrix.html?id='.$id,
     Title => $title &>
 
+<& /Elements/ListActions, actions => \@results &>
+
 <style type="text/css" media="screen">
 table.notification-matrix tr.sep {
   border: 0 0 1 0 #000000 solid;
@@ -115,6 +117,7 @@ if ($QueueObj->id) {
 my $Groups = RT::Groups->new($session{'CurrentUser'});
 $Groups->LimitToRolesForQueue($QueueObj->Id);
 
+my @results;
 my @groups = @{ $Groups->ItemsArrayRef };
 my @user_groups;
 my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved TicketUpdatedExternally QueueChanged);
@@ -144,6 +147,15 @@ if ($ARGS{SetMatrix}) {
         # XXX: move this to some api and do permission check
         $matrix->{$action} = [ map { $ARGS{"NM-$action-$_"} eq 'include' ? $_ : -$_ }
                                map { s/NM-\Q$action\E-// ? $_ : () } keys %ARGS ]
+    }
+
+    if ( $session{'CurrentUser'}->HasRight(Right => 'AdminQueue', Object => $RT::System) ) {
+        # XXX: setattribute always returns 1, there's no way to see if the AddAttribute actually worked
+        $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);
+        push @results, loc("Notification saved");
+    }
+    else {
+        push @results, loc("No permission to create queues");
     }
     $QueueObj->SetAttribute(Name => 'NotificationMatrix', Description => 'Notification Matrix Internal Data', Content => $matrix);
 }
