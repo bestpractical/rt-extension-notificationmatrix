@@ -1,0 +1,23 @@
+html/Admin/Queues/NotificationMatrix.html
+html/Callbacks/NotificationMatrix/Admin/Elements/QueueTabs/Default
+inc/Module/Install.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/RTx.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
+lib/RT/Extension/NotificationMatrix.pm
+lib/RT/Extension/NotificationMatrix/Rule.pm
+lib/RT/Extension/NotificationMatrix/Rule/QueueChanged.pm
+lib/RT/Extension/NotificationMatrix/Rule/TicketCommented.pm
+lib/RT/Extension/NotificationMatrix/Rule/TicketCreated.pm
+lib/RT/Extension/NotificationMatrix/Rule/TicketResolved.pm
+lib/RT/Extension/NotificationMatrix/Rule/TicketTaken.pm
+lib/RT/Extension/NotificationMatrix/Rule/TicketUpdatedExternally.pm
+Makefile.PL
+MANIFEST			This list of files
+META.yml
+t/basic.t
