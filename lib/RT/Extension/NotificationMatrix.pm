@@ -65,6 +65,25 @@ For example: TicketResolved
 
 =back
 
+Message sent to external recipients (requestors and ccs) will be using
+first found template of:
+
+=over
+
+=item $QueueName-$RuleName-External
+
+For example: General-TicketResolved-External
+
+=item $RuleName-External
+
+For example: TicketResolved-External
+
+=item The default external tempalte defined by the rule
+
+=item The C<Transaction> template
+
+=back
+
 =head1 CAVEATS
 
 Internally, the matrix is stored on the queue object as attributes,
