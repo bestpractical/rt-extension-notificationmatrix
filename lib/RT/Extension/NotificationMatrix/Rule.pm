@@ -5,8 +5,13 @@ use List::MoreUtils qw(part);
 use RT::Action::SendEmail;
 use base 'RT::Rule';
 
+sub GetExternalRecipients {
+    my $self = shift;
+    return $self->GetRecipients(1);
+}
+
 sub GetRecipients {
-    my $self   = shift;
+    my ($self, $external) = @_;
     my $matrix = RT::Extension::NotificationMatrix->get_queue_matrix($self->TicketObj->QueueObj);
 
     my $t = $matrix->{$self->NM_Entry} or return;
@@ -15,9 +20,9 @@ sub GetRecipients {
     my ($include, $exclude) = part { $_ > 0 ? 0 : 1 } @$t;
 
     my %address = map { $_ => 1 }
-        map { $self->_AddressesFromGroup($_) } @$include;
+        map { $self->_AddressesFromGroup($_, $external) } @$include;
 
-    for (map { $self->_AddressesFromGroup(-$_) } @$exclude ) {
+    for (map { $self->_AddressesFromGroup(-$_, $external) } @$exclude ) {
         delete $address{$_};
     }
 
@@ -25,13 +30,19 @@ sub GetRecipients {
 
 }
 
+# external : requestor & cc
+
 sub _AddressesFromGroup {
-    my ($self, $id) = @_;
+    my ($self, $id, $external) = @_;
     my $g = RT::Group->new($self->CurrentUser);
     $g->Load($id);
+
+    my $is_external = $g->Domain eq 'RT::Queue-Role' && ($g->Type eq 'Requestor' || $g->Type eq 'Cc');
+    return if $external xor $is_external;
+
     my @emails = $g->MemberEmailAddresses;
     if ($g->Domain eq 'RT::Queue-Role') {
-        $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type);
+        $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type );
         push @emails, $g->MemberEmailAddresses;
     }
     return @emails;
@@ -58,14 +69,20 @@ sub ScripConditionMatched {
 
 sub DefaultTemplate {}
 
+sub DefaultExternalTemplate {
+    $_[0]->DefaultTemplate;
+}
+
 sub LoadTemplate {
-    my $self = shift;
+    my ($self, $external) = @_;
     my $template = RT::Template->new($self->CurrentUser);
 
     my $name = ref($self);
     $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
-
-    for my $tname ($self->TicketObj->QueueObj->Name.'-'.$name, $name, $self->DefaultTemplate, 'Transaction') {
+    my @templates = ($self->TicketObj->QueueObj->Name.'-'.$name, $name);
+    @templates = map { $_.'-External' } @templates if $external;
+    push @templates, $external ? $self->DefaultExternalTemplate : $self->DefaultTemplate;
+    for my $tname (@templates, 'Transaction') {
         $template->Load($tname);
         last if $template->Id;
     }
@@ -84,10 +101,32 @@ sub Description {
     return "Notification for $name";
 }
 
-sub Prepare {
-    my $self = shift;
+sub PrepareExternal {
+    my ($self) = @_;
+    my @recipients = $self->GetExternalRecipients or return;
 
-    my @recipients = $self->GetRecipients or return 0;
+    my $template = $self->LoadTemplate(1);
+    # RT::Action weakens the following, so we need to keep additional references
+    my $ref = [RT::Scrip->new($self->CurrentUser),
+               { _Message_ID => 0},
+               $template];
+    my $email =  RT::Action::SendEmail->new( Argument       => undef,
+                                             CurrentUser    => $self->CurrentUser,
+                                             ScripObj       => $ref->[0],
+                                             ScripActionObj => $ref->[1],
+                                             TemplateObj    => $ref->[2],
+                                             TicketObj      => $self->TicketObj,
+                                             TransactionObj => $self->TransactionObj,
+                                           );
+    $email->{To} = \@recipients;
+    $email->{__ref} = $ref;
+    $email->Prepare;
+    return $email;
+}
+
+sub PrepareInternal {
+    my ($self) = @_;
+    my @recipients = $self->GetRecipients or return;
 
     my $template = $self->LoadTemplate;
     # RT::Action weakens the following, so we need to keep additional references
@@ -100,21 +139,27 @@ sub Prepare {
                                             ScripActionObj => $ref->[1],
                                             TemplateObj    => $ref->[2],
                                             TicketObj      => $self->TicketObj,
-                                            TransactionObj => $self->TransactionObj,
-                                        );
+                                            TransactionObj => $self->TransactionObj );
+
     $email->{To} = \@recipients;
+    $email->{__ref} = $ref;
     $email->Prepare;
-    $self->{__ref} = $ref;
-    $self->{__email} = $email;
+    return $email;
+}
+
+sub Prepare {
+    my $self = shift;
+
+    $self->{__email} = [($self->PrepareInternal(), $self->PrepareExternal())];
     $self->{hints} = { class => 'SendEmail',
-                       recipients => { To => \@recipients } };
+                       recipients => { To => [ map { $_->{To} } @{$self->{__email}} ] } };
     return 1;
 }
 
 sub Commit {
     my $self = shift;
     if ($self->{__email}) {
-        $self->{__email}->Commit;
+        $_->Commit for @{$self->{__email}};
     }
 
 }
