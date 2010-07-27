@@ -29,10 +29,12 @@ sub _AddressesFromGroup {
     my ($self, $id) = @_;
     my $g = RT::Group->new($self->CurrentUser);
     $g->Load($id);
+    my @emails = $g->MemberEmailAddresses;
     if ($g->Domain eq 'RT::Queue-Role') {
         $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type);
+        push @emails, $g->MemberEmailAddresses;
     }
-    $g->MemberEmailAddresses
+    return @emails;
 }
 
 sub ScripConditionMatched {
