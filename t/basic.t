@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 14;
+use RT::Test tests => 15;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
@@ -105,8 +105,14 @@ my @groups = @{ $Groups->ItemsArrayRef };
 my $owners = RT::Group->new($RT::SystemUser);
 $owners->LoadQueueRoleGroup(Queue => $q->Id, Type => 'Owner');
 
-my $matrix = { TicketCreated => [ $owners->id, $groups{group_a}->id ],
-               TicketTaken   => [ $groups{group_b}->id ],
+my $requestors = RT::Group->new($RT::SystemUser);
+$requestors->LoadQueueRoleGroup(Queue => $q->Id, Type => 'Requestor');
+
+my $admincc = RT::Group->new($RT::SystemUser);
+$admincc->LoadQueueRoleGroup(Queue => $q->Id, Type => 'AdminCc');
+
+my $matrix = { TicketCreated => [ $owners->id, $groups{group_a}->id, $requestors->id ],
+               TicketTaken   => [ $groups{group_b}->id, $admincc->id ],
                TicketUpdatedExternally => [ $owners->id ],
            };
 
@@ -128,7 +134,12 @@ mail_ok {
     to => 'user_a@company.com, user_b@company.com',
     subject => qr/a test/,
     body => qr/Transaction: Ticket created by USER_B/,
+}, { from => qr'USER_B via RT',
+    to => 'user_b@company.com',
+    subject => qr/a test/,
+    body => qr/automatically generated in response/,
 };
+
 
 mail_ok {
     my ($res, $msg) = $t->SetOwner($users{user_b});
