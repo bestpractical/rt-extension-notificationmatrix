@@ -18,7 +18,7 @@ For external notification, the first template found will be used:
 
 =over
 
-=item TicketCommented
+=item TicketCommented-External
 
 =item Transaction
 

@@ -19,7 +19,7 @@ For external notification, the first template found will be used:
 
 =over
 
-=item TicketCreated
+=item TicketCreated-External
 
 =item AutoReply
 

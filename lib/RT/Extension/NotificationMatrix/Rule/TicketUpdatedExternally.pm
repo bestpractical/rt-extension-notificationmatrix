@@ -34,7 +34,7 @@ For external notification, the first template found will be used:
 
 =over
 
-=item TicketUpdatedExternally
+=item TicketUpdatedExternally-External
 
 =item Correspondence
 

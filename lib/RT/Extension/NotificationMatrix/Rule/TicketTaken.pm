@@ -19,7 +19,7 @@ For external notification, the first template found will be used:
 
 =over
 
-=item TicketTaken
+=item TicketTaken-External
 
 =item Transaction
 

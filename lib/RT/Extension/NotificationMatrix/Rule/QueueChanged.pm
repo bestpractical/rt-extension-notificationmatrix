@@ -17,7 +17,7 @@ For external notification, the first template found will be used:
 
 =over
 
-=item QueueChanged
+=item QueueChanged-External
 
 =item Transaction
 

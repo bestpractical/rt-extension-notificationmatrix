@@ -18,7 +18,7 @@ For external notification, the first template found will be used:
 
 =over
 
-=item TicketResolved
+=item TicketResolved-External
 
 =item Resolved
 
