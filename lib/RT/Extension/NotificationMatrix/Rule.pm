@@ -152,7 +152,7 @@ sub Prepare {
 
     $self->{__email} = [($self->PrepareInternal(), $self->PrepareExternal())];
     $self->{hints} = { class => 'SendEmail',
-                       recipients => { To => [ map { $_->{To} } @{$self->{__email}} ] } };
+                       recipients => { To => [ map { @{$_->{To}} } @{$self->{__email}} ] } };
     return 1;
 }
 
