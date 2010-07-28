@@ -79,9 +79,8 @@ sub LoadTemplate {
 
     my $name = ref($self);
     $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
-    my @templates = ($self->TicketObj->QueueObj->Name.'-'.$name, $name);
-    @templates = map { $_.'-External' } @templates if $external;
-    push @templates, $external ? $self->DefaultExternalTemplate : $self->DefaultTemplate;
+    my @templates = $external ? ("$name-External", $self->DefaultExternalTemplate)
+                              : ($name,            $self->DefaultTemplate);
     for my $tname (@templates, 'Transaction') {
         $template->Load($tname);
         last if $template->Id;

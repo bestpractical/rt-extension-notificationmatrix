@@ -51,10 +51,6 @@ message with the first found template of:
 
 =over
 
-=item $QueueName-$RuleName
-
-For example: General-TicketResolved
-
 =item $RuleName
 
 For example: TicketResolved
@@ -69,10 +65,6 @@ Message sent to external recipients (requestors and ccs) will be using
 first found template of:
 
 =over
-
-=item $QueueName-$RuleName-External
-
-For example: General-TicketResolved-External
 
 =item $RuleName-External
 
