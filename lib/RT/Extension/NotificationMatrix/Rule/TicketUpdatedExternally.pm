@@ -28,4 +28,32 @@ sub ConditionMatched {
     return 1;
 }
 
+=head Templates
+
+For external notification, the first template found will be used:
+
+=over
+
+=item TicketUpdatedExternally
+
+=item Correspondence
+
+=item Transaction
+
+=back
+
+For internal notification, the first template found will be used:
+
+=over
+
+=item TicketUpdatedExternally
+
+=item Admin Correspondence
+
+=item Transaction
+
+=back
+
+=cut
+
 1;

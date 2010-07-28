@@ -11,4 +11,28 @@ sub ConditionMatched {
     $self->ScripConditionMatched("On Queue Change");
 }
 
+=head Templates
+
+For external notification, the first template found will be used:
+
+=over
+
+=item QueueChanged
+
+=item Transaction
+
+=back
+
+For internal notification, the first template found will be used:
+
+=over
+
+=item QueueChanged
+
+=item Transaction
+
+=back
+
+=cut
+
 1;

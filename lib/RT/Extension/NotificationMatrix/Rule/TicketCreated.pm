@@ -13,4 +13,30 @@ sub ConditionMatched {
     $self->ScripConditionMatched("On Create");
 }
 
+=head Templates
+
+For external notification, the first template found will be used:
+
+=over
+
+=item TicketCreated
+
+=item AutoReply
+
+=item Transaction
+
+=back
+
+For internal notification, the first template found will be used:
+
+=over
+
+=item TicketCreated
+
+=item Transaction
+
+=back
+
+=cut
+
 1;

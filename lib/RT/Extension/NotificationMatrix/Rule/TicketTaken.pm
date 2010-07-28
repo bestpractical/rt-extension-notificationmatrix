@@ -13,4 +13,28 @@ sub ConditionMatched {
     return ($txn->Field && $txn->Field eq 'Owner' && $txn->OldValue == $RT::Nobody->Id)
 }
 
+=head Templates
+
+For external notification, the first template found will be used:
+
+=over
+
+=item TicketTaken
+
+=item Transaction
+
+=back
+
+For internal notification, the first template found will be used:
+
+=over
+
+=item TicketTaken
+
+=item Transaction
+
+=back
+
+=cut
+
 1;

@@ -12,4 +12,31 @@ sub ConditionMatched {
     $self->ScripConditionMatched("On Resolve");
 }
 
+=head Templates
+
+For external notification, the first template found will be used:
+
+=over
+
+=item TicketResolved
+
+=item Resolved
+
+=item Transaction
+
+=back
+
+For internal notification, the first template found will be used:
+
+=over
+
+=item TicketResolved
+
+=item Transaction
+
+=back
+
+=cut
+
+
 1;

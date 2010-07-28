@@ -12,4 +12,31 @@ sub ConditionMatched {
     $self->ScripConditionMatched("On Comment");
 }
 
+=head Templates
+
+For external notification, the first template found will be used:
+
+=over
+
+=item TicketCommented
+
+=item Transaction
+
+=back
+
+For internal notification, the first template found will be used:
+
+=over
+
+=item TicketCommented
+
+=item Admin Comment
+
+=item Transaction
+
+=back
+
+=cut
+
+
 1;
