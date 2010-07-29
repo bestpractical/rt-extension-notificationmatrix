@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base 'RT::Extension::NotificationMatrix::Rule';
 
-use constant NM_Entry => 'When a ticket is replied to';
+use constant NM_Entry => 'TicketRepliedTo';
 use constant DefaultTemplate => 'Admin Correspondence';
 use constant DefaultExternalTemplate => 'Correspondence';
 use constant Description => 'When a ticket is replied to';
