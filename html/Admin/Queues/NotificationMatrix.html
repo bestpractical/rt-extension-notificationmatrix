@@ -120,7 +120,7 @@ $Groups->LimitToRolesForQueue($QueueObj->Id);
 my @results;
 my @groups = @{ $Groups->ItemsArrayRef };
 my @user_groups;
-my @actions = qw(TicketCreated TicketCommented TicketTaken TicketResolved TicketUpdatedExternally QueueChanged);
+my @actions = qw(TicketCreated TicketCommented TicketRepliedTo TicketTaken TicketResolved TicketUpdatedExternally QueueChanged);
 my $matrix;
 my $UserGroups;
 if (exists $ARGS{'GroupString'}) {
