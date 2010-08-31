@@ -16,18 +16,23 @@ sub GetRecipients {
 
     my $t = $matrix->{$self->NM_Entry} or return;
 
+    my $address;
+
     $self->ConditionMatched or return;
+
     my ($include, $exclude) = part { $_ > 0 ? 0 : 1 } @$t;
 
-    my %address = map { $_ => 1 }
-        map { $self->_AddressesFromGroup($_, $external) } @$include;
-
-    for (map { $self->_AddressesFromGroup(-$_, $external) } @$exclude ) {
-        delete $address{$_};
+    for (@$include) {
+        my @addresses = $self->_AddressesFromGroup($_, $external);
+        $address->{To}{$_} = 1 for @addresses;
     }
 
-    return sort keys %address;
+    for my $excluded (map { $self->_AddressesFromGroup(-$_, $external) } @$exclude ) {
+        delete $address->{$_}{$excluded} for qw(To Cc Bcc);
+    }
 
+    return { map { $_ => [sort keys %{$address->{$_}} ] }
+                 qw(To Cc Bcc) };
 }
 
 # external : requestor & cc
@@ -102,7 +107,7 @@ sub Description {
 
 sub PrepareExternal {
     my ($self) = @_;
-    my @recipients = $self->GetExternalRecipients or return;
+    my $recipients = $self->GetExternalRecipients or return;
 
     my $template = $self->LoadTemplate(1);
     # RT::Action weakens the following, so we need to keep additional references
@@ -117,7 +122,7 @@ sub PrepareExternal {
                                              TicketObj      => $self->TicketObj,
                                              TransactionObj => $self->TransactionObj,
                                            );
-    $email->{To} = \@recipients;
+    $email->{$_} = $recipients->{$_} for qw(To Cc Bcc);
     $email->{__ref} = $ref;
     $email->Prepare;
     return $email;
@@ -125,7 +130,7 @@ sub PrepareExternal {
 
 sub PrepareInternal {
     my ($self) = @_;
-    my @recipients = $self->GetRecipients or return;
+    my $recipients = $self->GetRecipients or return;
 
     my $template = $self->LoadTemplate;
     # RT::Action weakens the following, so we need to keep additional references
@@ -140,7 +145,7 @@ sub PrepareInternal {
                                             TicketObj      => $self->TicketObj,
                                             TransactionObj => $self->TransactionObj );
 
-    $email->{To} = \@recipients;
+    $email->{$_} = $recipients->{$_} for qw(To Cc Bcc);
     $email->{__ref} = $ref;
     $email->Prepare;
     return $email;
@@ -151,7 +156,10 @@ sub Prepare {
 
     $self->{__email} = [($self->PrepareInternal(), $self->PrepareExternal())];
     $self->{hints} = { class => 'SendEmail',
-                       recipients => { To => [ map { @{$_->{To}} } @{$self->{__email}} ] } };
+                       recipients => { To =>  [ map { @{$_->{To}} } @{$self->{__email}} ],
+                                       Cc =>  [ map { @{$_->{Cc}} } @{$self->{__email}} ],
+                                       Bcc => [ map { @{$_->{Bcc}} } @{$self->{__email}} ],
+                                   } };
     return 1;
 }
 
