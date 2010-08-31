@@ -14,6 +14,7 @@ lib/RT/Extension/NotificationMatrix/Rule.pm
 lib/RT/Extension/NotificationMatrix/Rule/QueueChanged.pm
 lib/RT/Extension/NotificationMatrix/Rule/TicketCommented.pm
 lib/RT/Extension/NotificationMatrix/Rule/TicketCreated.pm
+lib/RT/Extension/NotificationMatrix/Rule/TicketRepliedTo.pm
 lib/RT/Extension/NotificationMatrix/Rule/TicketResolved.pm
 lib/RT/Extension/NotificationMatrix/Rule/TicketTaken.pm
 lib/RT/Extension/NotificationMatrix/Rule/TicketUpdatedExternally.pm
