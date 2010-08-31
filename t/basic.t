@@ -131,7 +131,7 @@ mail_ok {
                );
     ok($tid);
 } { from => qr'USER_B via RT',
-    to => 'user_a@company.com, user_b@company.com',
+    bcc => 'user_a@company.com, user_b@company.com', # from ticket created: group_a
     subject => qr/a test/,
     body => qr/Transaction: Ticket created by USER_B/,
 }, { from => qr'USER_B via RT',
@@ -140,12 +140,11 @@ mail_ok {
     body => qr/automatically generated in response/,
 };
 
-
 mail_ok {
     my ($res, $msg) = $t->SetOwner($users{user_b});
     ok($res, $msg);
 } { from => qr'USER_B via RT',
-    to => 'user_b@company.com, user_c@company.com',
+    bcc => 'user_b@company.com, user_c@company.com', # from ticket taken: group_b
     subject => qr/a test/,
     body => qr/Given to USER_B/,
 };

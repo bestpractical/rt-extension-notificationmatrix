@@ -22,9 +22,9 @@ sub GetRecipients {
 
     my ($include, $exclude) = part { $_ > 0 ? 0 : 1 } @$t;
 
-    for (@$include) {
-        my @addresses = $self->_AddressesFromGroup($_, $external);
-        $address->{To}{$_} = 1 for @addresses;
+    for my $g (@$include) {
+        my ($class, @addresses) = $self->_AddressesFromGroupWithClass($g, $external);
+        $address->{$class}{$_} = 1 for @addresses;
     }
 
     for my $excluded (map { $self->_AddressesFromGroup(-$_, $external) } @$exclude ) {
@@ -39,6 +39,12 @@ sub GetRecipients {
 
 sub _AddressesFromGroup {
     my ($self, $id, $external) = @_;
+    my ($class, @email) = $self->_AddressesFromGroupWithClass($id, $external);
+    return @email;
+}
+
+sub _AddressesFromGroupWithClass {
+    my ($self, $id, $external) = @_;
     my $g = RT::Group->new($self->CurrentUser);
     $g->Load($id);
 
@@ -46,11 +52,17 @@ sub _AddressesFromGroup {
     return if $external xor $is_external;
 
     my @emails = $g->MemberEmailAddresses;
+    my $class = 'Bcc';
+
     if ($g->Domain eq 'RT::Queue-Role') {
         $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type );
         push @emails, $g->MemberEmailAddresses;
+        $class = $g->Type eq 'Cc'      ? 'Cc'
+               : $g->Type eq 'AdminCc' ? 'Bcc'
+                                       : 'To';
     }
-    return @emails;
+
+    return ($class, @emails);
 }
 
 sub ScripConditionMatched {
@@ -114,18 +126,7 @@ sub PrepareExternal {
     my $ref = [RT::Scrip->new($self->CurrentUser),
                { _Message_ID => 0},
                $template];
-    my $email =  RT::Action::SendEmail->new( Argument       => undef,
-                                             CurrentUser    => $self->CurrentUser,
-                                             ScripObj       => $ref->[0],
-                                             ScripActionObj => $ref->[1],
-                                             TemplateObj    => $ref->[2],
-                                             TicketObj      => $self->TicketObj,
-                                             TransactionObj => $self->TransactionObj,
-                                           );
-    $email->{$_} = $recipients->{$_} for qw(To Cc Bcc);
-    $email->{__ref} = $ref;
-    $email->Prepare;
-    return $email;
+    return $self->_PrepareSendEmail($recipients, $ref);
 }
 
 sub PrepareInternal {
@@ -137,6 +138,13 @@ sub PrepareInternal {
     my $ref = [RT::Scrip->new($self->CurrentUser),
                { _Message_ID => 0},
                $template];
+
+    return $self->_PrepareSendEmail($recipients, $ref);
+}
+
+sub _PrepareSendEmail {
+    my ($self, $recipients, $ref) = @_;
+
     my $email = RT::Action::SendEmail->new( Argument       => undef,
                                             CurrentUser    => $self->CurrentUser,
                                             ScripObj       => $ref->[0],
