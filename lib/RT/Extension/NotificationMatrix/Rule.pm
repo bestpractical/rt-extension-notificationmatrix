@@ -154,6 +154,19 @@ sub _PrepareSendEmail {
                                             TransactionObj => $self->TransactionObj );
 
     $email->{$_} = $recipients->{$_} for qw(To Cc Bcc);
+    if ( RT->Config->Get('UseFriendlyToLine') ) {
+        unless (@{$email->{To}}) {
+            @{ $email->{'PseudoTo'} } = sprintf RT->Config->Get('FriendlyToLineFormat'), 'notification', $self->TicketObj->Id;
+        }
+    }
+
+    if (!RT->Config->Get('NotifyActor')) {
+        my $creatorObj = $self->TransactionObj->CreatorObj;
+        my $creator = $creatorObj->EmailAddress() || '';
+        @{ $email->{$_} }  = grep ( lc $_ ne lc $creator, @{ $email->{$_} } )
+            for qw(To Cc Bcc);
+    }
+
     $email->{__ref} = $ref;
     $email->Prepare;
     return $email;

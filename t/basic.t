@@ -10,10 +10,12 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 15;
+use RT::Test tests => 23;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
+RT->Config->Set('NotifyActor',1);
+RT->Config->Set('UseFriendlyToLine',0);
 
 use_ok('RT::Extension::NotificationMatrix');
 
@@ -114,6 +116,7 @@ $admincc->LoadQueueRoleGroup(Queue => $q->Id, Type => 'AdminCc');
 my $matrix = { TicketCreated => [ $owners->id, $groups{group_a}->id, $requestors->id ],
                TicketTaken   => [ $groups{group_b}->id, $admincc->id ],
                TicketUpdatedExternally => [ $owners->id ],
+               TicketCommented => [ $groups{group_b}->id ],
            };
 
 $q->SetAttribute(Name => 'NotificationMatrix',
@@ -170,6 +173,46 @@ mail_ok {
     ok($res, $msg);
 } { from => qr'USER_A via RT',
     to => 'user_b@company.com',
+    subject => qr/a test/,
+    body => qr/foobar/,
+};
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_b} );
+    $t->SetCurrentUser($cu);
+    my $t2 = RT::Ticket->new($cu);
+    $t2->Load($t->id);
+    my ($res, $msg) = $t2->Correspond(Content => "foobar");
+    ok($res, $msg);
+};
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_a} );
+    $t->SetCurrentUser($cu);
+    my $t2 = RT::Ticket->new($cu);
+    $t2->Load($t->id);
+    my ($res, $msg) = $t2->Comment(Content => "foobar");
+    ok($res, $msg);
+} { from => qr'USER_A via RT',
+    bcc => 'user_b@company.com, user_c@company.com',
+    subject => qr/a test/,
+    body => qr/foobar/,
+};
+
+RT->Config->Set('NotifyActor',0);
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_b} );
+    $t->SetCurrentUser($cu);
+    my $t2 = RT::Ticket->new($cu);
+    $t2->Load($t->id);
+    my ($res, $msg) = $t2->Comment(Content => "foobar");
+    ok($res, $msg);
+} { from => qr'USER_B via RT',
+    bcc => 'user_c@company.com',
     subject => qr/a test/,
     body => qr/foobar/,
 };
