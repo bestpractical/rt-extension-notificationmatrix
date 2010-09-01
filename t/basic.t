@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 23;
+use RT::Test tests => 26;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
@@ -39,7 +39,7 @@ for my $user_name (qw(user_a user_b user_c)) {
     my $user = $users{$user_name} = RT::User->new($RT::SystemUser);
     $user->Create( Name => uc($user_name),
                    Privileged => 1,
-                   EmailAddress => $user_name.'@company.com');
+                   EmailAddress => $user_name.'@example.com');
 }
 
 my $q = RT::Queue->new($RT::SystemUser);
@@ -134,11 +134,11 @@ mail_ok {
                );
     ok($tid);
 } { from => qr'USER_B via RT',
-    bcc => 'user_a@company.com, user_b@company.com', # from ticket created: group_a
+    bcc => 'user_a@example.com, user_b@example.com', # from ticket created: group_a
     subject => qr/a test/,
     body => qr/Transaction: Ticket created by USER_B/,
 }, { from => qr'USER_B via RT',
-    to => 'user_b@company.com',
+    to => 'user_b@example.com',
     subject => qr/a test/,
     body => qr/automatically generated in response/,
 };
@@ -147,7 +147,7 @@ mail_ok {
     my ($res, $msg) = $t->SetOwner($users{user_b});
     ok($res, $msg);
 } { from => qr'USER_B via RT',
-    bcc => 'user_b@company.com, user_c@company.com', # from ticket taken: group_b
+    bcc => 'user_b@example.com, user_c@example.com', # from ticket taken: group_b
     subject => qr/a test/,
     body => qr/Given to USER_B/,
 };
@@ -172,7 +172,7 @@ mail_ok {
     my ($res, $msg) = $t2->Correspond(Content => "foobar");
     ok($res, $msg);
 } { from => qr'USER_A via RT',
-    to => 'user_b@company.com',
+    to => 'user_b@example.com',
     subject => qr/a test/,
     body => qr/foobar/,
 };
@@ -196,7 +196,7 @@ mail_ok {
     my ($res, $msg) = $t2->Comment(Content => "foobar");
     ok($res, $msg);
 } { from => qr'USER_A via RT',
-    bcc => 'user_b@company.com, user_c@company.com',
+    bcc => 'user_b@example.com, user_c@example.com',
     subject => qr/a test/,
     body => qr/foobar/,
 };
@@ -212,10 +212,44 @@ mail_ok {
     my ($res, $msg) = $t2->Comment(Content => "foobar");
     ok($res, $msg);
 } { from => qr'USER_B via RT',
-    bcc => 'user_c@company.com',
+    bcc => 'user_c@example.com',
     subject => qr/a test/,
     body => qr/foobar/,
 };
+
+
+warn "Requestor gorup is ".$requestors->id;
+$matrix = { TicketCreated => [ $requestors->id ],
+           };
+
+$q->SetAttribute(Name => 'NotificationMatrix',
+                 Description => 'Notification Matrix Internal Data',
+                 Content => $matrix);
+
+
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_b} );
+    $t->SetCurrentUser($cu);
+    my $t2 = RT::Ticket->new($cu);
+    my ($res, $txn, $msg) = $t2->Create(Subject =>'new request', MIMEObj => MIME::Entity->build(Data =>"foo bar"),
+                    Requestor => $cu->EmailAddress,
+                   Queue => $q->Id,
+                   
+
+    
+    );
+    ok($res, $msg);
+} { from => qr'USER_B via RT',
+    bcc => 'user_c@example.com',
+    subject => qr/new request/,
+    subject => qr/AutoReply/,
+    body => qr/foo bar/,
+};
+
+
+
 
 
 #my ($baseurl, $m) = RT::Test->started_ok;
