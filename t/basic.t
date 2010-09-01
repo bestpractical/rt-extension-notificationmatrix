@@ -218,7 +218,6 @@ mail_ok {
 };
 
 
-warn "Requestor gorup is ".$requestors->id;
 $matrix = { TicketCreated => [ $requestors->id ],
            };
 
@@ -242,7 +241,7 @@ mail_ok {
     );
     ok($res, $msg);
 } { from => qr'USER_B via RT',
-    bcc => 'user_c@example.com',
+    to => 'user_b@example.com',
     subject => qr/new request/,
     subject => qr/AutoReply/,
     body => qr/foo bar/,
