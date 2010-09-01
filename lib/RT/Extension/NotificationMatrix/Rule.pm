@@ -160,7 +160,9 @@ sub _PrepareSendEmail {
         }
     }
 
-    if (!RT->Config->Get('NotifyActor')) {
+    # Don't notify the actor unless it's the autoreply.
+    if (!RT->Config->Get('NotifyActor') && 
+        !$self->isa('RT::Extension::NotificationMatrix::Rule::TicketCreated')) {
         my $creatorObj = $self->TransactionObj->CreatorObj;
         my $creator = $creatorObj->EmailAddress() || '';
         @{ $email->{$_} }  = grep ( lc $_ ne lc $creator, @{ $email->{$_} } )
