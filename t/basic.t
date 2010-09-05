@@ -16,6 +16,7 @@ RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
 RT->Config->Set('NotifyActor',1);
 RT->Config->Set('UseFriendlyToLine',0);
+RT->Config->Set('CommentAddress', 'comment@example.com');
 
 use_ok('RT::Extension::NotificationMatrix');
 
@@ -211,7 +212,7 @@ mail_ok {
     $t2->Load($t->id);
     my ($res, $msg) = $t2->Comment(Content => "foobar");
     ok($res, $msg);
-} { from => qr'USER_B via RT',
+} { from => qr'USER_B via RT.*comment@example.com',
     bcc => 'user_c@example.com',
     subject => qr/a test/,
     body => qr/foobar/,

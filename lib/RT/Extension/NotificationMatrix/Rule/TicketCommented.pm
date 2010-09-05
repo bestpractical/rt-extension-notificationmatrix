@@ -6,6 +6,7 @@ use base 'RT::Extension::NotificationMatrix::Rule';
 use constant NM_Entry => 'TicketCommented';
 use constant DefaultTemplate => 'Admin Comment';
 use constant Description => 'When ticket is commented';
+use constant SendAsComment => 1;
 
 sub ConditionMatched {
     my $self = shift;

@@ -90,6 +90,8 @@ sub DefaultExternalTemplate {
     $_[0]->DefaultTemplate;
 }
 
+sub SendAsComment { 0 }
+
 sub LoadTemplate {
     my ($self, $external) = @_;
     my $template = RT::Template->new($self->CurrentUser);
@@ -171,6 +173,13 @@ sub _PrepareSendEmail {
 
     $email->{__ref} = $ref;
     $email->Prepare;
+
+    if ($self->SendAsComment) {
+        $email->TemplateObj->MIMEObj->head->set('From', '');
+        $email->TemplateObj->MIMEObj->head->set('Reply-To', '');
+        $email->SetReturnAddress( is_comment => 1 );
+    }
+
     return $email;
 }
 
