@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 26;
+use RT::Test tests => 29;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
@@ -250,6 +250,27 @@ mail_ok {
 
 
 
+my $matrix = { TicketUpdatedExternally => [ $admincc->id ],
+               TicketCommented => [ $admincc->id ],
+           };
+
+$q->SetAttribute(Name => 'NotificationMatrix',
+                 Description => 'Notification Matrix Internal Data',
+                 Content => $matrix);
+
+
+mail_ok {
+    my $cu = RT::CurrentUser->new;
+    $cu->Load( $users{user_b} );
+    $t->SetCurrentUser($cu);
+
+    my ($res, $msg) = $t->Comment(Content => "foobar");
+    ok($res, $msg);
+} { from => qr'USER_B via RT',
+    bcc => 'user_c@example.com',
+    subject => qr/\[Comment\]/,
+    body => qr/not sent to the Requestor.*foobar/s,
+};
 
 
 #my ($baseurl, $m) = RT::Test->started_ok;
