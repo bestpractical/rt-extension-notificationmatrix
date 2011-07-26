@@ -32,6 +32,8 @@ For internal notification, the first template found will be used:
 
 =item TicketResolved
 
+=item Resolved
+
 =item Transaction
 
 =back

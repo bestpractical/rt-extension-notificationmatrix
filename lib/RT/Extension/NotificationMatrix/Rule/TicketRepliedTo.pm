@@ -19,6 +19,8 @@ For external notification, the first template found will be used:
 
 =over
 
+=item TicketRepliedTo-External
+
 =item Correspondence
 
 =item Transaction
@@ -28,6 +30,8 @@ For external notification, the first template found will be used:
 For internal notification, the first template found will be used:
 
 =over
+
+=item TicketRepliedTo
 
 =item Admin Correspondence
 

@@ -21,6 +21,8 @@ For external notification, the first template found will be used:
 
 =item TicketCommented-External
 
+=item Admin Comment
+
 =item Transaction
 
 =back
