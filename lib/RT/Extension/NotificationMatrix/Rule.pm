@@ -100,8 +100,12 @@ sub LoadTemplate {
     $name =~ s/^RT::Extension::NotificationMatrix::Rule::// or die "unknown rule: $name";
     my @templates = $external ? ("$name-External", $self->DefaultExternalTemplate)
                               : ($name,            $self->DefaultTemplate);
+
+    my $queue = $self->TicketObj->QueueObj->Id;
+
     for my $tname (@templates, 'Transaction') {
-        $template->Load($tname);
+        $template->LoadQueueTemplate( Queue => $queue, Name => $tname );
+        $template->LoadGlobalTemplate( $tname ) unless $template->Id;
         last if $template->Id;
     }
 
