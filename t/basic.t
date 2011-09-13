@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use RT;
-use RT::Test tests => 29;
+use RT::Test tests => 28;
 use RT::Test::Email;
 RT->Config->Set( LogToScreen => 'debug' );
 RT->Config->Set('Plugins',qw(RT::Extension::NotificationMatrix));
@@ -138,10 +138,6 @@ mail_ok {
     bcc => 'user_a@example.com, user_b@example.com', # from ticket created: group_a
     subject => qr/a test/,
     body => qr/Transaction: Ticket created by USER_B/,
-}, { from => qr'USER_B via RT',
-    to => 'user_b@example.com',
-    subject => qr/a test/,
-    body => qr/automatically generated in response/,
 };
 
 mail_ok {

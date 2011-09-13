@@ -176,13 +176,6 @@ sub _PrepareSendEmail {
     }
 
     $email->{__ref} = $ref;
-    $email->Prepare;
-
-    if ($self->SendAsComment) {
-        $email->TemplateObj->MIMEObj->head->set('From', '');
-        $email->TemplateObj->MIMEObj->head->set('Reply-To', '');
-        $email->SetReturnAddress( is_comment => 1 );
-    }
 
     return $email;
 }
@@ -191,11 +184,57 @@ sub Prepare {
     my $self = shift;
 
     $self->{__email} = [($self->PrepareInternal(), $self->PrepareExternal())];
+
+    # XXX: This hints key is never used.  What's the purpose?
     $self->{hints} = { class => 'SendEmail',
                        recipients => { To =>  [ map { @{$_->{To}} } @{$self->{__email}} ],
                                        Cc =>  [ map { @{$_->{Cc}} } @{$self->{__email}} ],
                                        Bcc => [ map { @{$_->{Bcc}} } @{$self->{__email}} ],
                                    } };
+
+    # Remove any internal recipients from external notifications by cascading
+    # down the array of emails
+    for my $i (0 .. $#{$self->{__email}}) {
+        my $current = $self->{__email}[$i];
+
+        # Mark as seen all addresses at the current level.  Any addresses left
+        # in the current level are already not duplicates.
+        my %seen = map { lc($_) => 1 }
+                   map { @{$current->{$_}} }
+                       qw(To Cc Bcc);
+
+        # For all mail below the current, remove seen addresses
+        for my $j (++$i .. $#{$self->{__email}}) {
+            my $mail = $self->{__email}[$j];
+            for my $type (qw(To Cc Bcc)) {
+                my @new;
+
+                for my $addr (@{$mail->{$type}}) {
+                    # We don't increment $seen here because SendEmail
+                    # suppresses duplicates within headers in a single email
+                    # later.  We just want to avoid duplicates across mail.
+                    if (defined $addr and length $addr and not $seen{lc $addr}) {
+                        push @new, $addr;
+                    } else {
+                        $RT::Logger->info("Removing '$addr' from $type of notification #$j (@{[ref $self]}) because the address was already included in a higher notification");
+                    }
+                }
+                $mail->{$type} = \@new;
+            }
+        }
+    }
+
+    # Prepare all the email actions now that recipients are ready
+    for my $email (@{$self->{__email}}) {
+        $email->Prepare;
+
+        if ($self->SendAsComment) {
+            $email->TemplateObj->MIMEObj->head->set('From', '');
+            $email->TemplateObj->MIMEObj->head->set('Reply-To', '');
+            $email->SetReturnAddress( is_comment => 1 );
+        }
+    }
+
     return 1;
 }
 
