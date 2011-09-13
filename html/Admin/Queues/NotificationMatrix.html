@@ -46,7 +46,7 @@ Find User defined groups:
   <input type="checkbox" name="SelectUserGroup-<% $Group->Id %>"><% $Group->SelfDescription %><br>
 % }
 % if ($UserGroups->Count) {
-<& /Elements/Submit, Name => "Save", Label => loc('Subscribe selected queue for notification') &>
+<& /Elements/Submit, Name => "Save", Label => loc('Subscribe selected group for notification') &>
 % }
 % else {
 <h2>No groups matching '<% $ARGS{'GroupString'} %>' found</h2>
