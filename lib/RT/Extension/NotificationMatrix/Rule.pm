@@ -185,13 +185,6 @@ sub Prepare {
 
     $self->{__email} = [($self->PrepareInternal(), $self->PrepareExternal())];
 
-    # XXX: This hints key is never used.  What's the purpose?
-    $self->{hints} = { class => 'SendEmail',
-                       recipients => { To =>  [ map { @{$_->{To}} } @{$self->{__email}} ],
-                                       Cc =>  [ map { @{$_->{Cc}} } @{$self->{__email}} ],
-                                       Bcc => [ map { @{$_->{Bcc}} } @{$self->{__email}} ],
-                                   } };
-
     # Remove any internal recipients from external notifications by cascading
     # down the array of emails
     for my $i (0 .. $#{$self->{__email}}) {
@@ -234,6 +227,14 @@ sub Prepare {
             $email->SetReturnAddress( is_comment => 1 );
         }
     }
+
+    # These hints are used by PreviewScrips and must be generated after
+    # all the Prepares are run
+    $self->{hints} = { class => 'SendEmail',
+                       recipients => { To =>  [ map { @{$_->{To}} } @{$self->{__email}} ],
+                                       Cc =>  [ map { @{$_->{Cc}} } @{$self->{__email}} ],
+                                       Bcc => [ map { @{$_->{Bcc}} } @{$self->{__email}} ],
+                                   } };
 
     return 1;
 }
