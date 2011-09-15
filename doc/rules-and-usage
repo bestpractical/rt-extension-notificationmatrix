@@ -1,0 +1,134 @@
+RULES TO FOLLOW
+
+1. An explicit exclude trumps any other include
+
+   That is, if Victor is both Owner and Requestor on a ticket, and the
+   Requestor is included in a notification but the Owner is excluded,
+   Victor won't receive that notification.
+
+2. Each row in the matrix sends email independent of the others
+
+3. "When a ticket is updated externally" is a subset of "When a ticket
+   is replied to"
+
+   This means if both rows are included for a role, two emails about the
+   reply will be generated.  "When a ticket is updated externally" means
+   replied to by anyone not a Cc or Owner (usually the requestor or another
+   team member (AdminCc) who isn't the Owner or Cc'd on the ticket).
+
+   Note that when sending email, external means to Requestors and Ccs.
+
+4. Roles considered external get a separate email (and sometimes different
+   template) than roles considered internal.  See the table below.  Someone who is
+   getting an internal notification however will not also get an external one.
+
+5. Multiple includes on a single row don't generate duplicates.
+
+
+TABLE OF ROLES
+
+ Role      | Appears in | External?
+--------------------------------
+ Requestor | To         | yes
+ Cc        | Cc         | yes
+ Owner     | To         | no
+ AdminCc   | Bcc        | no
+
+
+TEMPLATES
+
+Requestors and Ccs get external notifications, Owners and AdminCcs get
+internal ones.
+
+Queue-level templates with the same name, if they exist, are used in
+preference to global ones.  This means the first template name is looked
+for on the ticket's queue, and then globally.  Then the second template
+name is looked for on the queue, and then globally.  Et cetera.  The
+first one found is used.
+
+When ticket is created
+    For external notification, the first template found will be used:
+
+        TicketCreated-External
+        AutoReply
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        TicketCreated
+        Transaction
+
+When ticket is commented
+    For external notification, the first template found will be used:
+
+        TicketCommented-External
+        Admin Comment
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        TicketCommented
+        Admin Comment
+        Transaction
+
+When a ticket is replied to
+    For external notification, the first template found will be used:
+
+        TicketRepliedTo-External
+        Correspondence
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        TicketRepliedTo
+        Admin Correspondence
+        Transaction
+
+When ticket is updated externally
+    For external notification, the first template found will be used:
+
+        TicketUpdatedExternally-External
+        Correspondence
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        TicketUpdatedExternally
+        Admin Correspondence
+        Transaction
+
+When ticket is resolved
+    For external notification, the first template found will be used:
+
+        TicketResolved-External
+        Resolved
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        TicketResolved
+        Resolved
+        Transaction
+
+When ticket is taken
+    For external notification, the first template found will be used:
+
+        TicketTaken-External
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        TicketTaken
+        Transaction
+
+When queue of ticket is changed
+    For external notification, the first template found will be used:
+
+        QueueChanged-External
+        Transaction
+
+    For internal notification, the first template found will be used:
+
+        QueueChanged
+        Transaction
+
