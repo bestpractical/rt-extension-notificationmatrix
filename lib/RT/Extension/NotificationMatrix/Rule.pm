@@ -73,6 +73,14 @@ sub ScripConditionMatched {
     $ConditionObj->Load( $name ) or die;
 
     my $txn_type = $self->TransactionObj->Type;
+
+    unless (defined $txn_type and length $txn_type) {
+        RT->Logger->error(
+            sprintf "Empty transaction type in %s for txn %d. Wrong current user?",
+                    ref $self, $self->TransactionObj->Id
+        );
+    }
+
     return unless( $ConditionObj->ApplicableTransTypes =~ /(?:^|,)(?:Any|\Q$txn_type\E)(?:,|$)/i );
     # Load the scrip's Condition object
     $ConditionObj->LoadCondition(
