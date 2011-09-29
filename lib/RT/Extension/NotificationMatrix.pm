@@ -2,7 +2,7 @@ use warnings;
 use strict;
 
 package RT::Extension::NotificationMatrix;
-our $VERSION = '2.1';
+our $VERSION = '2.2';
 
 RT::Ruleset->Add(
     Name => 'NotificationMatrix',

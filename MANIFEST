@@ -1,3 +1,4 @@
+doc/rules-and-usage
 html/Admin/Queues/NotificationMatrix.html
 html/Callbacks/NotificationMatrix/Admin/Elements/QueueTabs/Default
 inc/Module/Install.pm
