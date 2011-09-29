@@ -57,9 +57,11 @@ sub _AddressesFromGroupWithClass {
     if ($g->Domain eq 'RT::Queue-Role') {
         $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type );
         push @emails, $g->MemberEmailAddresses;
-        $class = $g->Type eq 'Cc'      ? 'Cc'
-               : $g->Type eq 'AdminCc' ? 'Bcc'
-                                       : 'To';
+        unless (RT->Config->Get('NotificationMatrixAlwaysBcc')) {
+            $class = $g->Type eq 'Cc'      ? 'Cc'
+                   : $g->Type eq 'AdminCc' ? 'Bcc'
+                                           : 'To';
+        }
     }
 
     return ($class, @emails);

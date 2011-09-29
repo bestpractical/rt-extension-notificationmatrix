@@ -34,6 +34,9 @@ RT::Extension::NotificationMatrix - RT Extension for custom ticket notification
 
   # In your RT site config:
   Set(@Plugins,(qw(RT::Extension::NotificationMatrix));
+  # If you'd like to Bcc all recipients, uncomment the line below.
+  # Disabled by default.
+  #Set($NotificationMatrixAlwaysBcc, 1);
 
 =head1 DESCRIPTION
 
