@@ -18,7 +18,7 @@ no_index:
     - inc
     - t
 requires:
-  perl: 5.8.3
-version: '2.2'
+  perl: 5.10.1
+version: '3.0'
 x_module_install_rtx_version: '0.37'
-x_requires_rt: 4.0.0
+x_requires_rt: 4.2.0
