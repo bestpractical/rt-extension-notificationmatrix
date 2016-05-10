@@ -1,0 +1,8 @@
+<%init>
+my $request_path = $HTML::Mason::Commands::r->path_info;
+my $id = $DECODED_ARGS->{id};
+if ( $request_path =~ qr{^/Admin/Queues} && $id ) {
+    my $path = "Admin/Queues/NotificationMatrix.html?id=$id";
+    PageMenu->child( 'notification-matrix' => title => loc('Notification'), path => $path );
+}
+</%init>

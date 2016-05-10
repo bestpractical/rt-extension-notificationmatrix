@@ -1,8 +1,5 @@
 <& /Admin/Elements/Header, Title => $title &>
-<& /Admin/Elements/QueueTabs, id => $QueueObj->id, 
-    QueueObj => $QueueObj,
-    current_tab => 'Admin/Queues/NotificationMatrix.html?id='.$id,
-    Title => $title &>
+<& /Elements/Tabs &>
 
 <& /Elements/ListActions, actions => \@results &>
 
@@ -74,7 +71,7 @@ To unselect, double click the button.
 <tr class="sep">
 <th></th>
 % for my $Group (@groups, @user_groups) {
-  <th class="group-item" colspan="2"><% $Group->Domain eq 'UserDefined' ? $Group->Name : $Group->Type %></th>
+  <th class="group-item" colspan="2"><% $Group->Name %></th>
 % }
 </tr>
 <tr class="sep">
@@ -115,7 +112,7 @@ if ($QueueObj->id) {
 }
 
 my $Groups = RT::Groups->new($session{'CurrentUser'});
-$Groups->LimitToRolesForQueue($QueueObj->Id);
+$Groups->LimitToRolesForObject($QueueObj);
 
 my @results;
 my @groups = @{ $Groups->ItemsArrayRef };
@@ -125,9 +122,9 @@ my $matrix;
 my $UserGroups;
 if (exists $ARGS{'GroupString'}) {
     $UserGroups = RT::Groups->new($session{'CurrentUser'});
-    $UserGroups->Limit(FIELD => 'Domain', OPERATOR => '=', VALUE => 'UserDefined');
+    $UserGroups->LimitToUserDefinedGroups;
     if (!$ARGS{'ListAll'}) {
-        $UserGroups->Limit(FIELD => 'Domain', OPERATOR => '=', VALUE => 'UserDefined');
+        $UserGroups->LimitToUserDefinedGroups;
         $UserGroups->Limit(FIELD => 'Name',
                            VALUE => $ARGS{'GroupString'},
                            OPERATOR => 'LIKE');

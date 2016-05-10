@@ -13,11 +13,11 @@ sub ConditionMatched {
     return unless $self->ScripConditionMatched("On Correspond");
 
     my @groups = ((map { my $g = RT::Group->new($self->CurrentUser);
-                         $g->LoadQueueRoleGroup(Queue => $self->TicketObj->QueueObj->Id, Type => $_);
+                         $g->LoadRoleGroup(Object => $self->TicketObj->QueueObj, Name => $_);
                          $g;
                    } qw(Cc Owner)),
                   (map { my $g = RT::Group->new($self->CurrentUser);
-                         $g->LoadTicketRoleGroup(Ticket => $self->TicketObj->Id, Type => $_);
+                         $g->LoadRoleGroup(Object => $self->TicketObj, Name => $_);
                          $g;
                      } qw(Cc Owner)));
 

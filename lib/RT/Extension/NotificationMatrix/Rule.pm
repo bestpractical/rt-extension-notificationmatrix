@@ -48,18 +48,18 @@ sub _AddressesFromGroupWithClass {
     my $g = RT::Group->new($self->CurrentUser);
     $g->Load($id);
 
-    my $is_external = $g->Domain eq 'RT::Queue-Role' && ($g->Type eq 'Requestor' || $g->Type eq 'Cc');
+    my $is_external = $g->Domain eq 'RT::Queue-Role' && ($g->Name eq 'Requestor' || $g->Name eq 'Cc');
     return if $external xor $is_external;
 
     my @emails = $g->MemberEmailAddresses;
     my $class = 'Bcc';
 
     if ($g->Domain eq 'RT::Queue-Role') {
-        $g->LoadTicketRoleGroup( Ticket => $self->TicketObj->Id, Type => $g->Type );
+        $g->LoadRoleGroup( Object => $self->TicketObj, Name => $g->Name );
         push @emails, $g->MemberEmailAddresses;
         unless (RT->Config->Get('NotificationMatrixAlwaysBcc')) {
-            $class = $g->Type eq 'Cc'      ? 'Cc'
-                   : $g->Type eq 'AdminCc' ? 'Bcc'
+            $class = $g->Name eq 'Cc'      ? 'Cc'
+                   : $g->Name eq 'AdminCc' ? 'Bcc'
                                            : 'To';
         }
     }
@@ -177,7 +177,7 @@ sub _PrepareSendEmail {
     }
 
     # Don't notify the actor unless it's the autoreply.
-    if (!RT->Config->Get('NotifyActor') && 
+    if (!RT->Config->Get('NotifyActor') &&
         !$self->isa('RT::Extension::NotificationMatrix::Rule::TicketCreated')) {
         my $creatorObj = $self->TransactionObj->CreatorObj;
         my $creator = $creatorObj->EmailAddress() || '';

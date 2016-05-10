@@ -30,6 +30,12 @@ sub get_queue_matrix {
 
 RT::Extension::NotificationMatrix - RT Extension for custom ticket notification
 
+=head1 PREREQUISITES
+
+This version of RT::Extension::NotificationMatrix requires at least RT 4.2.x
+
+If you're running an older version of RT, you should seek an older version of this extension; specifically, version 2.2.
+
 =head1 SYNOPSIS
 
   # In your RT site config:
