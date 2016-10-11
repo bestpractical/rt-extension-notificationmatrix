@@ -1,0 +1,2 @@
+3.01 2016-10-11
+ - Limit TicketTaken to Set transaction to avoid duplicate notifications
