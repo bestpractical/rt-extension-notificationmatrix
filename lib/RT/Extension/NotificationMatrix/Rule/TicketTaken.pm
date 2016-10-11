@@ -10,7 +10,8 @@ sub ConditionMatched {
     my $self = shift;
     my $txn = $self->TransactionObj;
 
-    return ($txn->Field && $txn->Field eq 'Owner' && $txn->OldValue == $RT::Nobody->Id)
+    # Limit to Set so we don't notify on a SetWatcher transaction
+    return ($txn->Field && $txn->Field eq 'Owner' && $txn->Type eq 'Set' && $txn->OldValue == $RT::Nobody->Id)
 }
 
 =head Templates
