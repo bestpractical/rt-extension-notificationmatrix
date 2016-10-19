@@ -1,2 +1,5 @@
+3.02 2016-10-19
+ - For TicketTaken rule, notify on all owner changes rather than just Nobody->user
+
 3.01 2016-10-11
  - Limit TicketTaken to Set transaction to avoid duplicate notifications
