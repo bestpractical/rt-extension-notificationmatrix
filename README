@@ -16,6 +16,10 @@ SYNOPSIS
       # Disabled by default.
       #Set($NotificationMatrixAlwaysBcc, 1);
 
+      # If you'd like to send on the Batch stage of transactions, uncomment the line below.
+      # Default is "TransactionCreate"
+      #Set($NotificationMatrixStage, "TransactionBatch");
+
 DESCRIPTION
     This plugin provides per-queue configuration for notification triggering
     based on ticket actions, and notification delivery for selected ticket

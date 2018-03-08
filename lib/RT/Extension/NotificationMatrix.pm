@@ -44,6 +44,10 @@ If you're running an older version of RT, you should seek an older version of th
   # Disabled by default.
   #Set($NotificationMatrixAlwaysBcc, 1);
 
+  # If you'd like to send on the Batch stage of transactions, uncomment the line below.
+  # Default is "TransactionCreate"
+  #Set($NotificationMatrixStage, "TransactionBatch");
+
 =head1 DESCRIPTION
 
 This plugin provides per-queue configuration for notification

@@ -257,4 +257,9 @@ sub Commit {
 
 }
 
+sub _Stage {
+    my $self = shift;
+    return RT->Config->Get('NotificationMatrixStage') || 'TransactionCreate';
+}
+
 1;
