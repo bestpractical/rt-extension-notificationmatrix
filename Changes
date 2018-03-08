@@ -1,3 +1,7 @@
+3.03 2018-03-08
+
+ - Add NotificationMatrixStage option to customize Stage to send notifications
+
 3.02 2016-10-19
  - For TicketTaken rule, notify on all owner changes rather than just Nobody->user
 
